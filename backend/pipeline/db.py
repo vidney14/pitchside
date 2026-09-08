@@ -25,6 +25,15 @@ CREATE TABLE IF NOT EXISTS events (
     y          FLOAT,
     outcome    VARCHAR
 );
+
+CREATE SEQUENCE IF NOT EXISTS audit_seq;
+
+CREATE TABLE IF NOT EXISTS audit_log (
+    id      INTEGER DEFAULT nextval('audit_seq'),
+    ts      TIMESTAMP DEFAULT now(),
+    stage   VARCHAR NOT NULL,
+    detail  JSON
+);
 """
 
 
