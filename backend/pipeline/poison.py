@@ -7,6 +7,21 @@ SCENARIOS = {
         "target": lambda ev: ev["event_type"] == "Shot",
         "mutate": lambda ev: ev.update({"xg": 0.42}),
     },
+        4: {
+        "name": "minute arrives as a string like 47'",
+        "target": lambda ev: ev["event_type"] == "Pass" and ev["minute"] > 45,
+        "mutate": lambda ev: ev.update({"minute": f"{ev['minute']}'"}),
+    },
+    6: {
+        "name": "misspelled player name, no id",
+        "target": lambda ev: ev["event_type"] == "Pass" and ev["player_id"] == 5503,  # Messi
+        "mutate": lambda ev: (ev.pop("player_id"), ev.update({"player_name": "Lionel Mesi"})),
+    },
+    13: {
+        "name": "xg = 9.5, impossible value",
+        "target": lambda ev: ev["event_type"] == "Shot" and ev["idx"] > 400,
+        "mutate": lambda ev: ev.update({"xg": 9.5}),
+    },
 }
 
 
