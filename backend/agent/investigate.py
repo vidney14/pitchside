@@ -53,4 +53,9 @@ def investigate(case: dict, triage_result, provider: str = "groq", max_steps: in
 
         evidence.append({"tool": call.tool, "argument": call.argument, "why": call.why, "result": result})
 
+        try:
+            call = structured(provider, ToolCall, [("system", SYSTEM), ("user", user)])
+        except Exception:
+            break  # model couldn't produce a valid tool call — treat as done
+
     return evidence
