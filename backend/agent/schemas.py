@@ -43,3 +43,4 @@ class FixProposal(BaseModel):
     payload_patch: dict | None = Field(default=None, description="Only for transform_payload. Keys to set or remove.")
     confidence: float = Field(ge=0, le=1)
     rationale: str = Field(description="Why this fix is safe.")
+    bounds: list[float] | None = Field(default=None, description="[min, max] for a bounded new column.")

@@ -6,6 +6,9 @@ from pipeline import db
 from pipeline.poison import inject
 from pipeline.replay import DATA_FILE, match_events, replay
 
+from agent import tools
+from agent.heal import heal
+
 
 def main():
     conn = db.connect(fresh=True)
@@ -30,9 +33,21 @@ def main():
             bus.emit(B.OK, f"{ev['minute']:>3}'  {ev['event_type']:<14} {ev['team']}", event_id=ev["event_id"])
         except Exception as exc:
             bus.emit(B.CRITICAL, f"event {ev['idx']} (scenario {scenario}) failed: {exc}",
-                     event_id=ev["event_id"], scenario=scenario, payload=ev, error=str(exc))
-            bus.emit(B.FATAL, "pipeline halted — no agent attached yet")
-            break
+                     event_id=ev["event_id"], scenario=scenario)
+
+            case = {
+                "error": str(exc).splitlines()[0],
+                "payload": ev,
+                "conn": conn,
+                "schema": [(c["column"], c["type"]) for c in tools.get_schema(conn)],
+            }
+            result = heal(case, bus)
+
+            if result["healed"] and result["payload"]:
+                db.insert_event(conn, result["payload"])
+                bus.emit(B.OK, f"retried event {ev['idx']} successfully")
+            elif not result["healed"]:
+                bus.emit(B.ESCALATE, f"event {ev['idx']} quarantined for human review")
 
     total = conn.execute("SELECT count(*) FROM events").fetchone()[0]
     bus.emit(B.INFO, f"done: {total} events in the database")

@@ -42,6 +42,13 @@ def heal(case: dict, bus=None, provider: str = "groq") -> dict:
 
     if p.action == "alter_table":
         conn.execute(p.sql)
+        if p.bounds:
+            col = p.sql.split("ADD COLUMN")[1].split()[0]
+            conn.execute(
+                "INSERT OR REPLACE INTO column_bounds VALUES (?, ?, ?)",
+                [col, p.bounds[0], p.bounds[1]],
+            )
+            say("GUARD", f"registered bounds {col} in {p.bounds}")
         say("HEALED", f"applied: {p.sql}")
         return {"healed": True, "payload": case["payload"], "proposal": p}
 

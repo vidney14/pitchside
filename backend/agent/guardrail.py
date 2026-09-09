@@ -1,7 +1,8 @@
 import re
 
 ALTER_PATTERN = re.compile(
-    r"^\s*ALTER\s+TABLE\s+events\s+ADD\s+COLUMN\s+(\w+)\s+(FLOAT|INTEGER|VARCHAR|BOOLEAN|DOUBLE)\s*;?\s*$",
+    r"^\s*ALTER\s+TABLE\s+events\s+ADD\s+COLUMN\s+(\w+)\s+(FLOAT|INTEGER|VARCHAR|BOOLEAN|DOUBLE)"
+    r"(\s+CHECK\s*\([^;]+\))?\s*;?\s*$",
     re.IGNORECASE,
 )
 

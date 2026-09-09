@@ -34,6 +34,12 @@ CREATE TABLE IF NOT EXISTS audit_log (
     stage   VARCHAR NOT NULL,
     detail  JSON
 );
+
+CREATE TABLE IF NOT EXISTS column_bounds (
+    column_name VARCHAR PRIMARY KEY,
+    min_value   DOUBLE,
+    max_value   DOUBLE
+);
 """
 
 
@@ -73,6 +79,17 @@ def insert_event(conn, ev: dict) -> None:
     about later. Hardcoding the columns would silently drop the new field
     and the failure would never surface.
     """
+    bounds = dict(
+        (row[0], (row[1], row[2]))
+        for row in conn.execute(
+            "SELECT column_name, min_value, max_value FROM column_bounds"
+        ).fetchall()
+    )
+    for col, val in ev.items():
+        if col in bounds and isinstance(val, (int, float)):
+            lo, hi = bounds[col]
+            if not (lo <= val <= hi):
+                raise ValueError(f"{col}={val} outside registered bounds [{lo}, {hi}]")
     cols = list(ev.keys())
     col_list = ", ".join(cols)
     placeholders = ", ".join("?" for _ in cols)

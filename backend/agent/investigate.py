@@ -36,7 +36,11 @@ def investigate(case: dict, triage_result, provider: str = "groq", max_steps: in
             f"TRIAGE: {triage_result.failure_class} - {triage_result.summary}\n"
             f"EVIDENCE SO FAR: {json.dumps(evidence, default=str)}"
         )
-        call = structured(provider, ToolCall, [("system", SYSTEM), ("user", user)])
+        try:
+            call = structured(provider, ToolCall, [("system", SYSTEM), ("user", user)])
+        except Exception:
+            break  # model emitted an invalid tool call — treat as done
+
         if call.tool == "done":
             break
 
@@ -52,10 +56,5 @@ def investigate(case: dict, triage_result, provider: str = "groq", max_steps: in
             result = None
 
         evidence.append({"tool": call.tool, "argument": call.argument, "why": call.why, "result": result})
-
-        try:
-            call = structured(provider, ToolCall, [("system", SYSTEM), ("user", user)])
-        except Exception:
-            break  # model couldn't produce a valid tool call — treat as done
 
     return evidence

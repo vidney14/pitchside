@@ -18,7 +18,10 @@ Rules:
 - xG must be between 0 and 1. minute >= 0. second 0-59. period 1-5.
 - If evidence shows a value outside its valid range, action MUST be escalate.
 - confidence below 0.8 means escalate.
-- payload_patch: use {"key": value} to set, {"key": null} to remove."""
+- payload_patch: use {"key": value} to set, {"key": null} to remove.
+
+- -When adding a column for a metric with known bounds (e.g. xg is 0-1), set the `bounds`
+  field to [min, max]. The column itself is unconstrained; the pipeline enforces the range."""
 
 
 def propose(case: dict, triage_result, evidence: list, provider: str = "groq") -> FixProposal:
