@@ -10,3 +10,8 @@
 - Day 5: Groq sometimes emits `done` as a literal tool name instead of an enum value in the ToolCall schema, causing a 400. Investigate loop now treats an unparseable tool call as "done" — the agent proceeds with whatever evidence it has rather than crashing. Degrades gracefully instead of failing the whole heal.
 
  - Day 6, real bug: when scenario 1 (xg=0.42) and 13 (xg=9.5) run in the same match, the agent's ALTER TABLE for scenario 1 creates an unconstrained FLOAT column. Scenario 13 then inserts silently — no error, no escalation, corrupt data stored. Fix: when adding a column for a metric with known bounds, the agent must include a CHECK constraint. Guardrail now requires it for bounded fields.
+
+- Day 6 fix: DuckDB rejects ADD COLUMN with CHECK (dry-run caught it). Moved bounds
+  enforcement into the pipeline: the agent registers [min,max] in a column_bounds table
+  when it creates a bounded column, and insert_event validates against it. Result:
+  scenario 13 is now caught even after scenario 1 created the column.
