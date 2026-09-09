@@ -1,6 +1,6 @@
 import json
 
-from agent.llm import get_llm
+from agent.llm import structured
 from agent.schemas import Triage
 
 SYSTEM = """You are the first responder for a football (soccer) event data pipeline.
@@ -23,11 +23,10 @@ or referential problem, not schema drift. Schema drift is only when a genuinely 
 measurement appears alongside all the expected fields."""
 
 
-def triage(case: dict, provider: str = "gemini") -> Triage:
-    llm = get_llm(provider).with_structured_output(Triage)
+def triage(case: dict, provider: str = "groq") -> Triage:
     user = (
         f"ERROR:\n{case['error']}\n\n"
         f"FAILING PAYLOAD:\n{json.dumps(case['payload'], default=str)}\n\n"
         f"CURRENT TABLE SCHEMA (column, type):\n{json.dumps(case['schema'])}"
     )
-    return llm.invoke([("system", SYSTEM), ("user", user)])
+    return structured(provider, Triage, [("system", SYSTEM), ("user", user)])

@@ -22,6 +22,7 @@ def capture_failure(scenario_id: int) -> dict:
                 "scenario": scenario_id,
                 "error": str(exc).splitlines()[0],
                 "payload": ev,
+                "conn": conn,
                 "schema": conn.execute(
                     "SELECT column_name, data_type FROM information_schema.columns "
                     "WHERE table_name = 'events' ORDER BY ordinal_position"
