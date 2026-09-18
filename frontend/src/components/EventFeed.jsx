@@ -17,21 +17,19 @@ export default function EventFeed({ events, connected }) {
           {connected ? "connected" : "disconnected"}
         </span>
       </div>
-      <div className="feed-scroll">
-        {events.length === 0 && (
-          <div className="empty-state">No events yet. Start a run to see the feed.</div>
-        )}
-        {events.map((ev, i) => (
-          <div className="feed-row" key={i}>
-            <span className="feed-time">{ev.at}</span>
-            <span className="stage-badge" style={{ background: stageColor(ev.stage) }}>
-              {ev.stage}
-            </span>
-            <span className="feed-text">{ev.text}</span>
-          </div>
-        ))}
-        <div ref={bottomRef} />
-      </div>
+      {events.length === 0 && (
+        <div className="empty-state">No events yet. Start a run to see the feed.</div>
+      )}
+      {events.map((ev, i) => (
+        <div className="feed-row" key={i}>
+          <span className="feed-time">{ev.at}</span>
+          <span className="stage-badge" style={{ background: stageColor(ev.stage) }}>
+            {ev.stage}
+          </span>
+          <span className="feed-text">{ev.text}</span>
+        </div>
+      ))}
+      <div ref={bottomRef} />
     </div>
   );
 }

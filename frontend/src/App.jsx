@@ -68,20 +68,20 @@ export default function App() {
 
   return (
     <div className="app">
+      {error && <div className="error-banner">{error}</div>}
+
       <Header running={running} />
       <StatTiles {...headline} />
 
-      {error && <div className="error-banner">{error}</div>}
+      <aside className="app-sidebar">
+        <RunControls scenarios={scenarios} running={running} onStart={start} onStop={stop} onClear={clear} />
+        <StatsPanel stats={stats} />
+      </aside>
 
-      <StageFunnelChart byStage={stats?.audit_by_stage} />
+      <div className="app-main-col">
+        <StageFunnelChart byStage={stats?.audit_by_stage} />
 
-      <div className="app-layout">
-        <aside className="app-sidebar">
-          <RunControls scenarios={scenarios} running={running} onStart={start} onStop={stop} onClear={clear} />
-          <StatsPanel stats={stats} />
-        </aside>
-
-        <main className="app-main">
+        <div className="tab-panel-wrap">
           <nav className="tabs">
             {TABS.map((t) => (
               <button key={t} className={`tab ${tab === t ? "active" : ""}`} onClick={() => setTab(t)}>
@@ -90,15 +90,17 @@ export default function App() {
             ))}
           </nav>
 
-          {tab === "Live Feed" && (
-            <>
-              <LiveSeriesChart events={events} />
-              <EventFeed events={events} connected={connected} />
-            </>
-          )}
-          {tab === "Failures & Fixes" && <FailuresPanel events={events} scenarios={scenarios} />}
-          {tab === "Eval Results" && <EvalPanel />}
-        </main>
+          <div className="tab-content">
+            {tab === "Live Feed" && (
+              <>
+                <LiveSeriesChart events={events} />
+                <EventFeed events={events} connected={connected} />
+              </>
+            )}
+            {tab === "Failures & Fixes" && <FailuresPanel events={events} scenarios={scenarios} />}
+            {tab === "Eval Results" && <EvalPanel />}
+          </div>
+        </div>
       </div>
     </div>
   );
