@@ -1,0 +1,35 @@
+{
+  "provider": "groq",
+  "rows": [
+    {
+      "scenario": 1,
+      "name": "new field xg on a Shot",
+      "expected": "alter_table",
+      "actual": "alter_table",
+      "correct": true,
+      "confidence": 0.96,
+      "seconds": 7.9,
+      "error": null
+    },
+    {
+      "scenario": 4,
+      "name": "minute arrives as a string like 47'",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 0.96,
+      "seconds": 21.4,
+      "error": null
+    },
+    {
+      "scenario": 13,
+      "name": "xg = 9.5, impossible value",
+      "expected": "escalate",
+      "actual": "escalate",
+      "correct": true,
+      "confidence": 1.0,
+      "seconds": 57.9,
+      "error": null
+    }
+  ]
+}

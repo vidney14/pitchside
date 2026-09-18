@@ -1,0 +1,205 @@
+{
+  "provider": "groq",
+  "rows": [
+    {
+      "scenario": 1,
+      "name": "new field xg on a Shot",
+      "expected": "alter_table",
+      "actual": "alter_table",
+      "correct": true,
+      "confidence": 1.0,
+      "seconds": 28.0,
+      "error": null
+    },
+    {
+      "scenario": 2,
+      "name": "new field pass_length on a Pass",
+      "expected": "alter_table",
+      "actual": "alter_table",
+      "correct": true,
+      "confidence": 0.96,
+      "seconds": 34.7,
+      "error": null
+    },
+    {
+      "scenario": 3,
+      "name": "player_id renamed to actor",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 1.0,
+      "seconds": 33.9,
+      "error": null
+    },
+    {
+      "scenario": 4,
+      "name": "minute arrives as a string like 47'",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 0.99,
+      "seconds": 43.2,
+      "error": null
+    },
+    {
+      "scenario": 5,
+      "name": "x and y merged into one string",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 0.99,
+      "seconds": 33.2,
+      "error": null
+    },
+    {
+      "scenario": 6,
+      "name": "misspelled player name, no id",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 0.99,
+      "seconds": 29.6,
+      "error": null
+    },
+    {
+      "scenario": 7,
+      "name": "unknown player id (substitute not in registry)",
+      "expected": "escalate",
+      "actual": "transform_payload",
+      "correct": false,
+      "confidence": 0.95,
+      "seconds": 46.2,
+      "error": null
+    },
+    {
+      "scenario": 8,
+      "name": "team key renamed to team_name",
+      "expected": "transform_payload",
+      "actual": "transform_payload",
+      "correct": true,
+      "confidence": 1.0,
+      "seconds": 32.7,
+      "error": null
+    },
+    {
+      "scenario": 9,
+      "name": "duplicate event_id, identical payload",
+      "expected": "skip_record",
+      "actual": "skip_record",
+      "correct": true,
+      "confidence": 0.99,
+      "seconds": 259.6,
+      "error": null
+    },
+    {
+      "scenario": 10,
+      "name": "x arrives as a text label instead of a coordinate",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 5.4,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 11,
+      "name": "idx arrives as text",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 0.6,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 12,
+      "name": "nested location object",
+      "expected": "transform_payload",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 1.0,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 13,
+      "name": "xg = 9.5, impossible value",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 0.7,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 14,
+      "name": "minute = -3",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 0.8,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 15,
+      "name": "second = 99",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 111.5,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 16,
+      "name": "period = 9",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 3.3,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 17,
+      "name": "payload is a lineup object, not an event",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 1.0,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 18,
+      "name": "required team field missing",
+      "expected": "transform_payload",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 0.9,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 19,
+      "name": "ten new fields at once (provider version bump)",
+      "expected": "alter_table",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 1.1,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    },
+    {
+      "scenario": 20,
+      "name": "event_id is null",
+      "expected": "escalate",
+      "actual": "crash",
+      "correct": false,
+      "confidence": null,
+      "seconds": 1.1,
+      "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01m2197"
+    }
+  ]
+}
