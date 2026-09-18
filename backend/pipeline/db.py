@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 import duckdb
@@ -122,3 +123,45 @@ def insert_event(conn, ev: dict) -> None:
     placeholders = ", ".join("?" for _ in cols)
     values = [ev[c] for c in cols]
     conn.execute(f"INSERT INTO events ({col_list}) VALUES ({placeholders})", values)
+
+
+def stats(conn) -> dict:
+    """Summary of the current match state, for the dashboard's stats panel."""
+    total = conn.execute("SELECT count(*) FROM events").fetchone()[0]
+    by_type = conn.execute(
+        "SELECT event_type, count(*) FROM events GROUP BY event_type ORDER BY 2 DESC"
+    ).fetchall()
+    by_team = conn.execute("SELECT team, count(*) FROM events GROUP BY team").fetchall()
+    by_stage = conn.execute("SELECT stage, count(*) FROM audit_log GROUP BY stage").fetchall()
+    return {
+        "total_events": total,
+        "by_event_type": dict(by_type),
+        "by_team": dict(by_team),
+        "audit_by_stage": dict(by_stage),
+    }
+
+
+def recent_audit(conn, limit: int = 200) -> list[dict]:
+    rows = conn.execute(
+        "SELECT id, ts, stage, detail FROM audit_log ORDER BY id DESC LIMIT ?", [limit]
+    ).fetchall()
+    return [{"id": r[0], "ts": str(r[1]), "stage": r[2], "detail": json.loads(r[3])} for r in rows]
+
+
+def list_rules(conn) -> list[dict]:
+    rows = conn.execute(
+        "SELECT id, failure_class, error_pattern, payload_pattern, action, sql, "
+        "payload_patch, created_from_audit, enabled, hits, created_at FROM rules ORDER BY id"
+    ).fetchall()
+    cols = ["id", "failure_class", "error_pattern", "payload_pattern", "action", "sql",
+            "payload_patch", "created_from_audit", "enabled", "hits", "created_at"]
+    out = []
+    for row in rows:
+        d = dict(zip(cols, row))
+        d["created_at"] = str(d["created_at"])
+        if d["payload_pattern"]:
+            d["payload_pattern"] = json.loads(d["payload_pattern"])
+        if d["payload_patch"]:
+            d["payload_patch"] = json.loads(d["payload_patch"])
+        out.append(d)
+    return out

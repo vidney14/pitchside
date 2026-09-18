@@ -11,23 +11,29 @@ from agent import tools
 from agent.heal import heal
 
 
-def main():
-    conn = db.connect(fresh=True)
-    bus = B.Bus(conn)
-    bus.subscribe(B.terminal_printer)
+def run_ingestion(conn, bus, scenario_ids=None, stop_event=None, delay: float = 0.0,
+                   provider: str = "groq") -> None:
+    """Replay the match, healing failures as they happen. Shared by the CLI
+    and the API so both go through the exact same pipeline.
 
+    stop_event: a threading.Event; when set, the run stops after the event
+    currently in flight instead of running to the end of the match.
+    """
     with open(DATA_FILE) as f:
         lineups = json.load(f)["lineups"]
     n = db.load_players(conn, lineups)
     bus.emit(B.INFO, f"loaded {n} players")
 
     events = match_events()
-    scenario_ids = [int(s) for s in sys.argv[1:]]
     if scenario_ids:
         events = inject(events, scenario_ids)
         bus.emit(B.INFO, f"poison pills armed: {scenario_ids}")
 
-    for ev in replay(events, delay=0):
+    for ev in replay(events, delay=delay):
+        if stop_event is not None and stop_event.is_set():
+            bus.emit(B.INFO, "run stopped by request")
+            return
+
         scenario = ev.pop("_scenario", None)
         try:
             db.insert_event(conn, ev)
@@ -58,7 +64,7 @@ def main():
                 "conn": conn,
                 "schema": [(c["column"], c["type"]) for c in tools.get_schema(conn)],
             }
-            result = heal(case, bus)
+            result = heal(case, bus, provider=provider)
 
             if result["healed"] and result["payload"]:
                 db.insert_event(conn, result["payload"])
@@ -68,6 +74,14 @@ def main():
 
     total = conn.execute("SELECT count(*) FROM events").fetchone()[0]
     bus.emit(B.INFO, f"done: {total} events in the database")
+
+
+def main():
+    conn = db.connect(fresh=True)
+    bus = B.Bus(conn)
+    bus.subscribe(B.terminal_printer)
+    scenario_ids = [int(s) for s in sys.argv[1:]]
+    run_ingestion(conn, bus, scenario_ids, delay=0)
 
 
 if __name__ == "__main__":
