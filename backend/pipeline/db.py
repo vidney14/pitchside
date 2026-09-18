@@ -1,9 +1,13 @@
 import json
+import os
 from pathlib import Path
 
 import duckdb
 
-DEFAULT_DB = Path(__file__).resolve().parents[1] / "pitchside.duckdb"
+DEFAULT_DB = Path(os.environ.get(
+    "PITCHSIDE_DB_PATH",
+    str(Path(__file__).resolve().parents[1] / "pitchside.duckdb"),
+))
 
 SCHEMA = """
 CREATE TABLE IF NOT EXISTS players (
