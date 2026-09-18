@@ -2,6 +2,8 @@ from dotenv import load_dotenv
 from langchain_google_genai import ChatGoogleGenerativeAI
 from langchain_groq import ChatGroq
 
+import time 
+
 load_dotenv()
 
 
@@ -13,7 +15,7 @@ def get_llm(provider: str = "groq"):
     raise ValueError(f"unknown provider: {provider}")
 
 
-def structured(provider: str, schema, messages, retries: int = 2):
+def structured(provider: str, schema, messages, retries: int = 4):
     """Call the model with structured output, retrying if it returns prose instead."""
     llm = get_llm(provider).with_structured_output(schema)
     last = None
@@ -22,6 +24,9 @@ def structured(provider: str, schema, messages, retries: int = 2):
             return llm.invoke(messages)
         except Exception as exc:
             last = exc
+            if "429" in str(exc) or "rate limit" in str(exc).lower():
+                time.sleep(20)
+                continue
             if attempt < retries:
                 messages = messages + [
                     ("user", "You must respond by calling the tool with the required fields. Do not write prose.")

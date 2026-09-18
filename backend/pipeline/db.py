@@ -75,9 +75,12 @@ def insert_event(conn, ev: dict) -> None:
 
     The column list is built from the payload's keys on purpose. If the feed
     sends a field the table doesn't have (e.g. "xg"), DuckDB raises a real
-    'column does not exist' error. That error is what the agent will reason
-    about later. Hardcoding the columns would silently drop the new field
-    and the failure would never surface.
+    'column does not exist' error. That error is what the agent reasons about.
+    Hardcoding the columns would silently drop the new field.
+
+    Two checks run before the insert, both enforcing rules the schema cannot:
+    - bounds registered by the agent when it created a bounded column
+    - referential integrity for player_id
     """
     bounds = dict(
         (row[0], (row[1], row[2]))
@@ -90,6 +93,14 @@ def insert_event(conn, ev: dict) -> None:
             lo, hi = bounds[col]
             if not (lo <= val <= hi):
                 raise ValueError(f"{col}={val} outside registered bounds [{lo}, {hi}]")
+
+    if ev.get("player_id") is not None:
+        known = conn.execute(
+            "SELECT 1 FROM players WHERE player_id = ?", [ev["player_id"]]
+        ).fetchone()
+        if not known:
+            raise ValueError(f"player_id {ev['player_id']} not in player registry")
+
     cols = list(ev.keys())
     col_list = ", ".join(cols)
     placeholders = ", ".join("?" for _ in cols)
