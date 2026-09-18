@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Bar, BarChart, CartesianGrid, Legend, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts";
 import { api } from "../api";
 
 function summarize(rows) {
@@ -49,39 +50,67 @@ export default function EvalPanel() {
   }, [selected]);
 
   const providers = Object.entries(latestByProvider);
+  const chartData = providers.map(([provider, result]) => {
+    const s = summarize(result.rows);
+    return {
+      provider,
+      accuracy: s.accuracy == null ? 0 : Math.round(s.accuracy * 100),
+      escalationRecall: s.escalationRecall == null ? 0 : Math.round(s.escalationRecall * 100),
+    };
+  });
 
   return (
     <div className="panel">
       <h2>Eval Results</h2>
 
-      {providers.length === 0 && <p className="muted">No eval results yet. Run: python -m evals.run</p>}
+      {providers.length === 0 && <div className="empty-state">No eval results yet. Run: python -m evals.run</div>}
 
       {providers.length > 0 && (
-        <table className="eval-table">
-          <thead>
-            <tr>
-              <th>Provider</th><th>Accuracy</th><th>Escalation recall</th>
-              <th>Unsafe actions</th><th>Mean latency</th><th>Skipped</th>
-            </tr>
-          </thead>
-          <tbody>
-            {providers.map(([provider, result]) => {
-              const s = summarize(result.rows);
-              return (
-                <tr key={provider}>
-                  <td>{provider}</td>
-                  <td>{pct(s.accuracy)} ({s.total} scored)</td>
-                  <td>{pct(s.escalationRecall)}</td>
-                  <td className={s.unsafeCount ? "warn" : ""}>
-                    {s.unsafeCount} {s.unsafeIds.length ? `(#${s.unsafeIds.join(", #")})` : ""}
-                  </td>
-                  <td>{s.meanLatency.toFixed(1)}s</td>
-                  <td>{s.skipped}</td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
+        <>
+          <div className="stat-block">
+            <h3>Accuracy &amp; escalation recall, by provider</h3>
+            <ResponsiveContainer width="100%" height={180}>
+              <BarChart data={chartData} margin={{ left: -16, right: 8, top: 8, bottom: 0 }}>
+                <CartesianGrid stroke="var(--border)" vertical={false} />
+                <XAxis dataKey="provider" tick={{ fill: "var(--text)", fontSize: 12 }} axisLine={false} tickLine={false} />
+                <YAxis domain={[0, 100]} tick={{ fill: "var(--text)", fontSize: 11 }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{ background: "var(--bg-raised)", border: "1px solid var(--border)", borderRadius: 8, fontSize: 12 }}
+                  formatter={(v) => `${v}%`}
+                />
+                <Legend wrapperStyle={{ fontSize: 12, color: "var(--text)" }} />
+                <Bar dataKey="accuracy" name="Accuracy" fill="var(--agent)" radius={[4, 4, 0, 0]} barSize={28} />
+                <Bar dataKey="escalationRecall" name="Escalation recall" fill="var(--ok)" radius={[4, 4, 0, 0]} barSize={28} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+
+          <table className="eval-table">
+            <thead>
+              <tr>
+                <th>Provider</th><th>Accuracy</th><th>Escalation recall</th>
+                <th>Unsafe actions</th><th>Mean latency</th><th>Skipped</th>
+              </tr>
+            </thead>
+            <tbody>
+              {providers.map(([provider, result]) => {
+                const s = summarize(result.rows);
+                return (
+                  <tr key={provider}>
+                    <td>{provider}</td>
+                    <td>{pct(s.accuracy)} ({s.total} scored)</td>
+                    <td>{pct(s.escalationRecall)}</td>
+                    <td className={s.unsafeCount ? "warn" : ""}>
+                      {s.unsafeCount} {s.unsafeIds.length ? `(#${s.unsafeIds.join(", #")})` : ""}
+                    </td>
+                    <td>{s.meanLatency.toFixed(1)}s</td>
+                    <td>{s.skipped}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </>
       )}
 
       <div className="stat-block">

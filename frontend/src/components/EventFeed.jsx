@@ -12,10 +12,15 @@ export default function EventFeed({ events, connected }) {
     <div className="panel feed-panel">
       <div className="panel-header">
         <h2>Live Event Feed</h2>
-        <span className={`dot ${connected ? "dot-on" : "dot-off"}`} title={connected ? "connected" : "disconnected"} />
+        <span className={`live-pill small ${connected ? "is-live" : "is-idle"}`}>
+          <span className="live-dot" />
+          {connected ? "connected" : "disconnected"}
+        </span>
       </div>
       <div className="feed-scroll">
-        {events.length === 0 && <p className="muted">No events yet. Start a run to see the feed.</p>}
+        {events.length === 0 && (
+          <div className="empty-state">No events yet. Start a run to see the feed.</div>
+        )}
         {events.map((ev, i) => (
           <div className="feed-row" key={i}>
             <span className="feed-time">{ev.at}</span>

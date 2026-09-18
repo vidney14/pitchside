@@ -25,7 +25,10 @@ export default function RunControls({ scenarios, running, onStart, onStop, onCle
     <div className="panel">
       <div className="panel-header">
         <h2>Run Controls</h2>
-        <span className={`run-state ${running ? "running" : "idle"}`}>{running ? "RUNNING" : "IDLE"}</span>
+        <span className={`live-pill small ${running ? "is-live" : "is-idle"}`}>
+          <span className="live-dot" />
+          {running ? "running" : "idle"}
+        </span>
       </div>
 
       <div className="control-row">

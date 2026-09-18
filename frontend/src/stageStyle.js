@@ -1,17 +1,21 @@
 // Colour-coding for bus stages. Kept in one place so the feed, the
-// failures panel, and any legend agree with each other.
+// failures panel, the funnel chart, and the legend all agree.
+// Grouped into the three semantic accents from index.css: healthy/OK
+// (emerald), agent-working (indigo), critical/escalate (red/amber) --
+// plus a couple of distinct hues for RULE (self-learned shortcut) and
+// GUARD (the safety check) so those steps stay visually legible.
 export const STAGE_COLORS = {
-  OK: "#2f9e58",
-  INFO: "#5b7ba6",
-  CRITICAL: "#d9822b",
-  AGENT: "#7c5cd1",
-  GUARD: "#1f9c93",
-  HEALED: "#2f9e58",
-  ESCALATE: "#d1435b",
-  RULE: "#c98a1f",
-  FATAL: "#8a1f2b",
+  OK: "#10b981",
+  HEALED: "#10b981",
+  INFO: "#64748b",
+  AGENT: "#818cf8",
+  GUARD: "#22d3ee",
+  RULE: "#f59e0b",
+  CRITICAL: "#fb923c",
+  ESCALATE: "#f43f5e",
+  FATAL: "#be123c",
 };
 
 export function stageColor(stage) {
-  return STAGE_COLORS[stage] || "#888";
+  return STAGE_COLORS[stage] || "#64748b";
 }

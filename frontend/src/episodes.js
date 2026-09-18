@@ -38,3 +38,49 @@ export function buildEpisodes(events) {
   if (current) episodes.push(current);
   return episodes.reverse();
 }
+
+const LLM_TRACKER = [
+  { key: "detected", label: "Detected" },
+  { key: "triaged", label: "Triaged" },
+  { key: "investigated", label: "Investigated" },
+  { key: "proposed", label: "Proposed fix" },
+  { key: "guardrail", label: "Guardrail" },
+  { key: "resolved", label: "Resolved" },
+];
+
+const RULE_TRACKER = [
+  { key: "detected", label: "Detected" },
+  { key: "rule", label: "Rule matched (no LLM)" },
+  { key: "resolved", label: "Resolved" },
+];
+
+// Map an episode's raw step log onto a fixed set of named stages, so
+// the UI can render a step tracker instead of a plain scrolling log.
+export function deriveTracker(ep) {
+  const usedRule = ep.steps.some((s) => s.stage === "RULE");
+  const template = usedRule ? RULE_TRACKER : LLM_TRACKER;
+
+  const find = (pred) => ep.steps.find(pred);
+  const matchers = {
+    triaged: (s) => s.stage === "AGENT" && s.text.startsWith("triage"),
+    investigated: (s) => s.stage === "AGENT" && s.text.startsWith("investigate"),
+    proposed: (s) => s.stage === "AGENT" && s.text.startsWith("propose"),
+    guardrail: (s) => s.stage === "GUARD" || (s.stage === "ESCALATE" && !s.text.includes("quarantined")),
+    rule: (s) => s.stage === "RULE",
+    resolved: (s) => s.stage === "OK" || (s.stage === "ESCALATE" && s.text.includes("quarantined")),
+  };
+
+  return template.map((step) => {
+    if (step.key === "detected") {
+      return { ...step, done: true, text: ep.critical, resolved: null };
+    }
+    const match = find(matchers[step.key]);
+    const isResolved = step.key === "resolved";
+    return {
+      ...step,
+      done: Boolean(match) || (isResolved && ep.resolution != null),
+      text: match?.text,
+      resolved: isResolved ? ep.resolution : null,
+    };
+  });
+}
