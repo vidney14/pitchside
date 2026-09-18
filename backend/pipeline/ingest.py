@@ -3,6 +3,7 @@ import sys
 
 from pipeline import bus as B
 from pipeline import db
+from pipeline import rules
 from pipeline.poison import inject
 from pipeline.replay import DATA_FILE, match_events, replay
 
@@ -32,11 +33,27 @@ def main():
             db.insert_event(conn, ev)
             bus.emit(B.OK, f"{ev['minute']:>3}'  {ev['event_type']:<14} {ev['team']}", event_id=ev["event_id"])
         except Exception as exc:
+            error = str(exc).splitlines()[0]
             bus.emit(B.CRITICAL, f"event {ev['idx']} (scenario {scenario}) failed: {exc}",
                      event_id=ev["event_id"], scenario=scenario)
 
+            rule = rules.find_rule(conn, error, ev)
+            if rule:
+                rules.record_hit(conn, rule["id"])
+                applied = rules.apply_rule(conn, rule, ev)
+                bus.emit(B.RULE, f"rule {rule['id']} matched ({rule['action']}) — no LLM call",
+                         event_id=ev["event_id"], rule_id=rule["id"])
+                if applied["healed"] and applied["payload"]:
+                    db.insert_event(conn, applied["payload"])
+                    bus.emit(B.OK, f"retried event {ev['idx']} successfully (via rule)")
+                elif applied["healed"]:
+                    bus.emit(B.OK, f"event {ev['idx']} skipped via rule")
+                else:
+                    bus.emit(B.ESCALATE, f"event {ev['idx']} quarantined (rule did not resolve)")
+                continue
+
             case = {
-                "error": str(exc).splitlines()[0],
+                "error": error,
                 "payload": ev,
                 "conn": conn,
                 "schema": [(c["column"], c["type"]) for c in tools.get_schema(conn)],

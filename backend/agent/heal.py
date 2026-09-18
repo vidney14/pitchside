@@ -4,6 +4,7 @@ from agent.guardrail import check
 from agent.investigate import investigate
 from agent.propose import propose
 from agent.triage import triage
+from pipeline.rules import error_signature
 
 
 def apply_patch(payload: dict, patch: dict) -> dict:
@@ -40,6 +41,8 @@ def heal(case: dict, bus=None, provider: str = "groq") -> dict:
     if not ok:
         return {"healed": False, "reason": why, "proposal": p}
 
+    sig = error_signature(case["error"])
+
     if p.action == "alter_table":
         conn.execute(p.sql)
         if p.bounds:
@@ -49,16 +52,19 @@ def heal(case: dict, bus=None, provider: str = "groq") -> dict:
                 [col, p.bounds[0], p.bounds[1]],
             )
             say("GUARD", f"registered bounds {col} in {p.bounds}")
-        say("HEALED", f"applied: {p.sql}")
+        say("HEALED", f"applied: {p.sql}", error_signature=sig, failure_class=t.failure_class,
+            action=p.action, sql=p.sql)
         return {"healed": True, "payload": case["payload"], "proposal": p}
 
     if p.action == "transform_payload":
         fixed = apply_patch(case["payload"], p.payload_patch)
-        say("HEALED", f"patched: {json.dumps(p.payload_patch, default=str)}")
+        say("HEALED", f"patched: {json.dumps(p.payload_patch, default=str)}", error_signature=sig,
+            failure_class=t.failure_class, action=p.action, payload_patch=p.payload_patch)
         return {"healed": True, "payload": fixed, "proposal": p}
 
     if p.action == "skip_record":
-        say("HEALED", "skipped duplicate")
+        say("HEALED", "skipped duplicate", error_signature=sig, failure_class=t.failure_class,
+            action=p.action)
         return {"healed": True, "payload": None, "proposal": p}
 
     return {"healed": False, "reason": "unknown action", "proposal": p}

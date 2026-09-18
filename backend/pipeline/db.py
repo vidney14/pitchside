@@ -40,6 +40,22 @@ CREATE TABLE IF NOT EXISTS column_bounds (
     min_value   DOUBLE,
     max_value   DOUBLE
 );
+
+CREATE SEQUENCE IF NOT EXISTS rule_seq;
+
+CREATE TABLE IF NOT EXISTS rules (
+    id                 INTEGER DEFAULT nextval('rule_seq'),
+    failure_class      VARCHAR NOT NULL,
+    error_pattern      VARCHAR NOT NULL,
+    payload_pattern    JSON,
+    action             VARCHAR NOT NULL,
+    sql                VARCHAR,
+    payload_patch      JSON,
+    created_from_audit INTEGER,
+    enabled            BOOLEAN NOT NULL DEFAULT true,
+    hits               INTEGER NOT NULL DEFAULT 0,
+    created_at         TIMESTAMP DEFAULT now()
+);
 """
 
 
